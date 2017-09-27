@@ -1,29 +1,29 @@
 import { GameId } from 'shared/game-session';
 
-import { PlayerNotifier } from 'server/player-notifier';
-import { GameServer } from 'server/game-server';
+import { PlayerMessenger } from 'server/player-messenger';
+import { GameSessionServer } from 'server/game-server';
 
 interface LobbyServer {
-    addGame(game: GameServer): void;
+    addGame(game: GameSessionServer): void;
     removeGame(gameId: GameId): void;
 }
 
 class SocketIOLobbyServer implements LobbyServer {
-    protected games: Map<GameId, GameServer> = new Map();
+    protected games: Map<GameId, GameSessionServer> = new Map();
 
-    constructor(protected notifier: PlayerNotifier) {
+    constructor(protected messenger: PlayerMessenger) {
         // TODO: Handle new player connections
     }
 
-    addGame(game: GameServer): void {
+    addGame(game: GameSessionServer): void {
         if (this.games.has(game.id)) {
             console.warn('Replacing already existing game', game.id);
         }
 
         this.games.set(game.id, game);
         if (game.listed) {
-            this.notifier.broadcast({
-                type: 'game-added',
+            this.messenger.broadcast({
+                kind: 'game-added',
                 gameData: {
                     id: game.id,
                     name: game.name,
@@ -39,8 +39,8 @@ class SocketIOLobbyServer implements LobbyServer {
         }
 
         this.games.delete(gameId);
-        this.notifier.broadcast({
-            type: 'game-removed',
+        this.messenger.broadcast({
+            kind: 'game-removed',
             gameId: gameId
         });
     }

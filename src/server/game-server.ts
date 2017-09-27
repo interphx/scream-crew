@@ -1,38 +1,43 @@
 import { PlayerId } from 'shared/player';
-import { GameId, GameSessionState } from 'shared/game-session';
+import { GameId, GameSessionStateKind } from 'shared/game-session';
 
-import { PlayerNotifier } from 'server/player-notifier';
+import { PlayerMessenger, MessageListenerBinding } from 'server/player-messenger';
+import { GameSessionState } from 'server/game-session-states/game-session-state';
+import { AwaitingPlayers } from 'server/game-session-states/awaiting-players';
 
-export interface GameServer {
+export interface GameSessionServer {
     readonly id: GameId;
     readonly name: string;
     readonly listed: boolean;
 
-    getState(): GameSessionState;
+    getStateKind(): GameSessionStateKind | null;
     hasPassword(): boolean;
 
-    addPlayer(playerId: PlayerId): void;
-    removePlayer(playerId: PlayerId): void;
     tick(timestamp: number): void;
 }
 
-export class SocketIOGameServer implements GameServer {
-    protected players: Set<PlayerId> = new Set();
-    protected state: GameSessionState = GameSessionState.AwaitingPlayers;
+export class SocketIOGameSessionServer implements GameSessionServer {
+    protected state: GameSessionState | null;
 
     constructor(
-        protected notifier: PlayerNotifier,
+        protected messenger: PlayerMessenger,
 
         public id: GameId, 
         public name: string,
+        public ownerId: PlayerId,
         public listed: boolean = true,
         protected password: string | null = null
     ) {
-        // TODO: Handle new player connections
+        this.state = new AwaitingPlayers(messenger, (newState: GameSessionState) => {
+            this.setState(newState);
+        });
     }
 
-    getState() {
-        return this.state;
+    getStateKind(): GameSessionStateKind | null {
+        if (!this.state) {
+            return null;
+        }
+        return this.state.getKind();
     }
 
     hasPassword(): boolean {
@@ -40,40 +45,20 @@ export class SocketIOGameServer implements GameServer {
     }
 
     protected setState(newState: GameSessionState) {
-        var oldState = this.state;
+        var oldStateKind = this.getStateKind(),
+            newStateKind = newState.getKind();
+
+        if (this.state) {
+            this.state.exit();
+        }
+
         this.state = newState;
-        this.notifier.broadcast({
-            type: 'game-state-changed',
-            oldState: oldState,
-            newState: newState
-        })
-    }
-
-    addPlayer(playerId: PlayerId): void {
-        if (this.players.has(playerId)) {
-            console.warn(`Attempt to add already existing player ${playerId} to game ${this.id}`);
-        }
-
-        this.players.add(playerId);
-        this.notifier.broadcast({
-            type: 'player-joined-game',
-            playerId: playerId
-        });
-    }
-
-    removePlayer(playerId: PlayerId): void {
-        if (!this.players.has(playerId)) {
-            console.warn(`Attempt to remove non-existent player ${playerId} from game ${this.id}`);
-        }
-
-        this.players.delete(playerId);
-        this.notifier.broadcast({
-            type: 'player-left-game',
-            playerId: playerId
-        });
+        this.state.enter();
     }
 
     tick(timestamp: number): void {
-
+        if (this.state) {
+            this.state.tick(timestamp);
+        }        
     }
 }

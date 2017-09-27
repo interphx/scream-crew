@@ -1,3 +1,5 @@
+import { getRandomElement, getRandomBoolean } from 'shared/utils';
+
 export type ControlId = string;
 
 interface BaseControl {
@@ -20,3 +22,28 @@ export interface Switch extends BaseControl {
 }
 
 export type Control = Button | Toggle | Switch;
+
+function getRandomButton(id: ControlId): Button {
+    return {
+        id,
+        type: 'button'
+    };
+}
+
+function getRandomToggle(id: ControlId): Toggle {
+    return {
+        id,
+        type: 'toggle',
+        enabled: getRandomBoolean()
+    };
+}
+
+function getRandomSwitch(id: ControlId, ) {
+
+}
+
+export function getRandomControl(): Control {
+    var result = {
+        type: getRandomElement(['button', 'toggle', 'switch'])
+    }
+}

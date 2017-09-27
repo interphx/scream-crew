@@ -1,46 +1,53 @@
-import { GameId, GameSessionState } from 'shared/game-session';
+import { GameId, GameSessionStateKind } from 'shared/game-session';
 import { PlayerId } from 'shared/player';
 
-/*------------------------------*/
-/* Lobby                        */
-/*------------------------------*/
-interface GameAdded {
-    type: 'game-added';
-    gameData: {
-        id: GameId,
-        name: string,
-        hasPassword: boolean
-    }
+export interface TypeOfMessage {
+    /**
+     * Common
+     */
+    'player-joined': {
+        kind: 'player-joined';
+        playerId: PlayerId;
+    };
+    'player-left': {
+        kind: 'player-left';
+        playerId: PlayerId;
+    };
+
+    /**
+     * Lobby
+     */
+    'game-added': {
+        kind: 'game-added';
+        gameData: {
+            id: GameId;
+            name: string;
+            hasPassword: boolean;
+        }
+    };
+    'game-removed': {
+        kind: 'game-removed';
+        gameId: GameId;
+    };
+
+    /**
+     * GameSession
+     */
+     'awaiting-players-entered': {
+         kind: 'awaiting-players-entered';
+     };
+     'gameplay-entered': {
+         kind: 'gameplay-entered';
+     };     
+
+    /**
+     * GameSession | AwaitingPlayers
+     */
+    'player-ready': {
+        kind: 'player-ready';
+        playerId: PlayerId;
+    };
 };
 
-interface GameRemoved {
-    type: 'game-removed';
-    gameId: GameId;
-};
-
-/*------------------------------*/
-/* GameServer                   */
-/*------------------------------*/
-interface PlayerJoinedGame {
-    type: 'player-joined-game';
-    playerId: PlayerId;
-}
-
-interface PlayerLeftGame {
-    type: 'player-left-game';
-    playerId: PlayerId;
-}
-
-interface GameStateChanged {
-    type: 'game-state-changed';
-    oldState: GameSessionState;
-    newState: GameSessionState;
-}
-
-
-export type Message = 
-    | GameAdded 
-    | GameRemoved 
-    | PlayerJoinedGame 
-    | PlayerLeftGame 
-    | GameStateChanged;
+export type MessageKind = keyof TypeOfMessage;
+export type Message = TypeOfMessage[MessageKind];

@@ -7,15 +7,15 @@ interface BaseAction {
 }
 
 export interface ButtonPress extends BaseAction {
-    type: 'button-press';
+    kind: 'button-press';
 }
 
 export interface ToggleToggle extends BaseAction {
-    type: 'toggle-toggle';
+    kind: 'toggle-toggle';
 }
 
 export interface SwitchSet extends BaseAction {
-    type    : 'switch-set';
+    kind    : 'switch-set';
     newValue: number;
 }
 
