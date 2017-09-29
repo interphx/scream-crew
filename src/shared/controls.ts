@@ -42,8 +42,8 @@ function getRandomSwitch(id: ControlId, ) {
 
 }
 
-export function getRandomControl(): Control {
+/*export function getRandomControl(): Control {
     var result = {
         type: getRandomElement(['button', 'toggle', 'switch'])
     }
-}
+}*/
