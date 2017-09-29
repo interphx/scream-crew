@@ -9,7 +9,7 @@ import * as express    from 'express';
 import { getRandomId } from 'shared/utils';
 
 var port      = 5000,
-    staticDir =__dirname + '/static';
+    staticDir = path.join(__dirname, '/static');
 
 async function main() {
     var app = express();
@@ -17,7 +17,7 @@ async function main() {
     console.log('Static dir:', staticDir);
     
     app.use(bodyParser.json({ limit: '100mb' }));
-    app.use('*', express.static(staticDir));
+    app.use('/', express.static(staticDir));
     
     var server = http.createServer(app).listen(port, function() {
         console.log(`HTTP listening on port ${port}!`);

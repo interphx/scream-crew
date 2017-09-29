@@ -41,7 +41,7 @@ export class AwaitingPlayers extends BaseState {
                 }
 
                 if (this.readyPlayers.size >= this.players.size) {
-                    this.yieldState(new Gameplay(this.messenger, this.yieldState, this.players));
+                    this.yieldState(new Gameplay(this.messenger, this.yieldState, this.players, 4));
                 }
             }),
         ]);
