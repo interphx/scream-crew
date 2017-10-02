@@ -21,3 +21,17 @@ export function getRandomBoolean(): boolean {
 export function getRandomElement<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
 }
+
+export function noop(...args: any[]) {
+
+}
+
+export function identity<T>(value: T): T {
+    return value;
+}
+
+export function constant<T>(value: T): (...args: any[]) => T {
+    return function() {
+        return value;
+    }
+}
