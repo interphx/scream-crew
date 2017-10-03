@@ -1,14 +1,10 @@
-import { GameId, GameSessionStateType } from 'shared/game-session';
+import { GameId, GameStateType, ListedGameInfo } from 'shared/game-session';
 import { PlayerId } from 'shared/player';
 
 export interface MessageInterfaces {
     'game-added': {
         type: 'game-added';
-        gameData: {
-            id: GameId;
-            name: string;
-            hasPassword: boolean;
-        };
+        gameData: ListedGameInfo;
     };
 
     'game-removed': {
@@ -34,7 +30,7 @@ export interface MessageInterfaces {
 
     'current-game-state-changed': {
         type: 'game-state-changed';
-        newState: GameSessionStateType;
+        newState: GameStateType;
     }
 }
 

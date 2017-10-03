@@ -38,5 +38,14 @@ export interface MessageInterfaces {
     };
 }
 
+export interface ResponseInterfaces {
+    'create-game': { successful: true; newGameId: GameId; } | { successful: false; error: string; }
+}
+
+export type RequestMessageType = keyof ResponseInterfaces;
+export type Response = ResponseInterfaces[RequestMessageType];
+export type RequestMessage = MessageInterfaces[RequestMessageType];
+export type RequestMessageInterfaces = { [Key in RequestMessageType]: MessageInterfaces[Key] };
+
 export type MessageType = keyof MessageInterfaces;
 export type Message = MessageInterfaces[MessageType];

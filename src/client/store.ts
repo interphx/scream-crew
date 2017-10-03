@@ -1,24 +1,17 @@
 import { createStore } from 'redux';
 
 import { PlayerId, PlayerInfo } from 'shared/player';
-import { GameId, GameInfo } from 'shared/game-session';
+import { GameId, ListedGameInfo } from 'shared/game-session';
 
 import { app } from 'client/reducers';
 
 export interface Store {
-    players: {
-        [key: string]: PlayerInfo
-    },
-
-    games: {
-        [key: string]: GameInfo
-    }
+    lobbyGames: ListedGameInfo[];
 }
 
 export function getInitialStoreState(): Store {
     return {
-        players: {},
-        games: {}
+        lobbyGames: []
     };
 }
 

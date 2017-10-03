@@ -2,17 +2,16 @@ import { PlayerId } from 'shared/player';
 
 export type GameId = string;
 
-export enum GameSessionStateType {
+export enum GameStateType {
     AwaitingPlayers,
     Gameplay,
     End
 }
 
-export interface GameInfo {
+export interface ListedGameInfo {
     id: GameId;
     name: string;
-    stateKind: GameSessionStateType;
+    stateType: GameStateType;
     hasPassword: boolean;
-    listed: boolean;
-    players: PlayerId[];
+    playersCount: number;
 }

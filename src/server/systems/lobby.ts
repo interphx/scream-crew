@@ -1,5 +1,6 @@
 import { getRandomId } from 'shared/utils';
 import { PlayerId } from 'shared/player';
+import { GameStateType, GameId } from 'shared/game-session';
 
 import { ServerStateContainer } from 'server/server-state-container';
 import { PlayerMessageListener, MessageListenerBinding } from 'server/messaging/player-message-listener';
@@ -16,36 +17,63 @@ export class Lobby {
 
     }
 
+    addPlayerToGame(playerId: PlayerId, gameId: GameId) {
+        if (!this.stateContainer.isPlayerPlaying(playerId)) {
+            var playersToNotify = this.stateContainer.getPlayersOfGame(gameId);
+
+            this.stateContainer.addPlayerToGame(playerId, gameId);
+
+            this.dispatcher.sendToAll(playersToNotify, {
+                type: 'player-added-to-current-game',
+                playerId: playerId
+            });
+        }
+    }
+
     start() {
         this.addSubscriptions([
             this.listener.subscribe('player-connected', (playerId, message) => {
-                this.stateContainer.addPlayer(playerId, playerId);
+                this.stateContainer.addPlayer({
+                    id: playerId,
+                    name: playerId
+                });
             }),
             this.listener.subscribe('player-disconnected', (playerId, message) => {
                 this.stateContainer.deletePlayer(playerId);
             }),
-            this.listener.subscribe('create-game', (playerId, message) => {
+            this.listener.addRequestHandler('create-game', (playerId, message) => {
+                if (this.stateContainer.isPlayerPlaying(playerId)) {
+                    return { successful: false, error: 'You need to leave your current game before creating a new one' };
+                }
+
                 var name = this.stateContainer.fixNewGameName(message.name.trim()),
                     password = message.password,
                     listed = message.listed == null ? Boolean(message.listed) : true;
                 
                 var newGameId = getRandomId(8);
                 
-                this.stateContainer.addGame(playerId, newGameId, name, listed, password);
+                this.stateContainer.addGame({
+                    id: newGameId,
+                    name: name,
+                    listed: listed,
+                    password: password,
+                    ownerId: playerId,
+                    stateType: GameStateType.AwaitingPlayers
+                });
+                this.addPlayerToGame(playerId, newGameId);
+
                 console.log(`Created game: ${newGameId}`);
                 
                 if (listed) {
                     var lobbyPlayers = this.stateContainer.getAllLobbyPlayers();
                     this.dispatcher.sendToAll(lobbyPlayers, {
                         type: 'game-added',
-                        gameData: {
-                            id: newGameId,
-                            name: name,
-                            hasPassword: Boolean(password)
-                        }
+                        gameData: this.stateContainer.getListedGameInfo(newGameId)
                     });
                     console.log(`Notified players of new game: `, lobbyPlayers);
                 }
+
+                return { successful: true, newGameId: newGameId };
             }),
             this.listener.subscribe('delete-game', (playerId, message) => {
                 if (this.stateContainer.getGameOwner(message.gameId) === playerId) {
@@ -65,16 +93,7 @@ export class Lobby {
                 }
             }),
             this.listener.subscribe('join-game', (playerId, message) => {
-                if (!this.stateContainer.isPlayerPlaying(playerId)) {
-                    var playersToNotify = this.stateContainer.getPlayersOfGame(message.gameId);
-
-                    this.stateContainer.addPlayerToGame(playerId, message.gameId);
-
-                    this.dispatcher.sendToAll(playersToNotify, {
-                        type: 'player-added-to-current-game',
-                        playerId: playerId
-                    });
-                }
+                this.addPlayerToGame(playerId, message.gameId);
             }),
             this.listener.subscribe('leave-current-game', (playerId, message) => {
                 if (this.stateContainer.isPlayerPlaying(playerId)) {

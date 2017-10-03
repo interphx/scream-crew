@@ -1,5 +1,5 @@
 import { PlayerInfo, PlayerId } from 'shared/player';
-import { GameInfo, GameId } from 'shared/game-session';
+import { GameId, GameStateType, ListedGameInfo } from 'shared/game-session';
 
 import { PlayerMessageSender } from 'server/messaging/player-message-sender';
 
@@ -15,24 +15,39 @@ export interface ServerStateContainer {
     getPlayersOfGame(gameId: GameId): ReadonlyArray<PlayerId>;
     getAllLobbyPlayers(): ReadonlyArray<PlayerId>;
     isGameListed(gameId: GameId): boolean;
-    addPlayer(playerId: PlayerId, name: string): void;
+    getListedGameInfo(gameId: GameId): ListedGameInfo;
+    addPlayer(newPlayerData: {
+        id: PlayerId,
+        name: string
+    }): void;
     deletePlayer(playerId: PlayerId): void;
-    addGame(ownerId: PlayerId, newGameId: GameId, name: string, listed: boolean, password: string | undefined): void;
+    addGame(newGameData: {
+        id: GameId,
+        name: string,
+        listed: boolean,
+        password?: string,
+        ownerId: PlayerId,
+        stateType: GameStateType
+    }): void;
     deleteGame(gameId: GameId): void;
 }
 
 export interface ServerState {
     players: {
-        [key: string]: PlayerInfo
+        [key: string]: {
+            id: PlayerId;
+            name: string;
+        }
     };
     games: {
         [key: string]: {
-            id: GameId,
-            owner: PlayerId,
-            name: string,
-            listed: boolean,
-            password?: string,
-            players: PlayerId[]
+            id: GameId;
+            owner: PlayerId;
+            name: string;
+            listed: boolean;
+            password?: string;
+            players: PlayerId[];
+            stateType: GameStateType;
         }
     };
 }
@@ -122,6 +137,17 @@ export class SimpleServerStateContainer implements ServerStateContainer {
         return this.state.games[gameId].listed;
     }
 
+    getListedGameInfo(gameId: GameId): ListedGameInfo {
+        var game = this.state.games[gameId];
+        return {
+            id: gameId,
+            name: game.name,
+            hasPassword: Boolean(game.password),
+            playersCount: game.players.length,
+            stateType: game.stateType
+        };
+    }
+
     removePlayerFromCurrentGame(playerId: PlayerId): void {
         var game = Object.values(this.state.games).find(game => game.players.indexOf(playerId) >= 0);
         if (game) {
@@ -139,21 +165,32 @@ export class SimpleServerStateContainer implements ServerStateContainer {
         game.players.push(playerId);
     }
 
-    addGame(ownerId: PlayerId, newGameId: GameId, name: string, listed: boolean, password: string | undefined): void {
-        this.state.games[newGameId] = {
-            id: newGameId,
-            owner: ownerId,
-            name: name,
-            listed: listed,
-            password: password,
+    addGame(newGameData: {
+        id: GameId,
+        name: string,
+        listed: boolean,
+        password?: string,
+        ownerId: PlayerId,
+        stateType: GameStateType
+    }): void {
+        this.state.games[newGameData.id] = {
+            id: newGameData.id,
+            owner: newGameData.ownerId,
+            name: newGameData.name,
+            listed: newGameData.listed,
+            stateType: newGameData.stateType,
+            password: newGameData.password,
             players: []
         };
     }
     
-    addPlayer(playerId: PlayerId, name: string): void {
-        this.state.players[playerId] = {
-            id: playerId,
-            name: name
+    addPlayer(newPlayerData: {
+        id: PlayerId,
+        name: string
+    }): void {
+        this.state.players[newPlayerData.id] = {
+            id: newPlayerData.id,
+            name: newPlayerData.name
         };
     }
 

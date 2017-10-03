@@ -1,15 +1,27 @@
-import { Change } from 'shared/changes';
+import { ListedGameInfo, GameId } from 'shared/game-session';
 
-interface ApplyStateDelta {
-    type: 'apply-state-delta';
-    delta: Change[];
+export interface AddGame {
+    type: 'add-game';
+    gameData: ListedGameInfo;
 }
 
-export function applyStateDelta(delta: Change[]): ApplyStateDelta {
+export function addGame(gameData: ListedGameInfo): AddGame {
     return {
-        type: 'apply-state-delta',
-        delta
+        type: 'add-game',
+        gameData: gameData
     };
 }
 
-export type Action = ApplyStateDelta;
+export interface RemoveGame {
+    type: 'remove-game';
+    gameId: GameId;
+}
+
+export function removeGame(gameId: GameId): RemoveGame {
+    return {
+        type: 'remove-game',
+        gameId: gameId
+    }
+}
+
+export type Action = AddGame | RemoveGame;
