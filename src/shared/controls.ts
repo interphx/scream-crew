@@ -8,17 +8,20 @@ interface BaseControl {
 
 export interface Button extends BaseControl {
     type: 'button';
+    name: string;
 }
 
 export interface Toggle extends BaseControl {
     type: 'toggle';
     enabled: boolean;
+    name: string;
 }
 
 export interface Switch extends BaseControl {
     type: 'switch';
     value : number;
     labels: string[];
+    name: string;
 }
 
 export type Control = Button | Toggle | Switch;
@@ -26,7 +29,8 @@ export type Control = Button | Toggle | Switch;
 function getRandomButton(id: ControlId): Button {
     return {
         id,
-        type: 'button'
+        type: 'button',
+        name: `Button ${id}`
     };
 }
 
@@ -34,7 +38,8 @@ function getRandomToggle(id: ControlId): Toggle {
     return {
         id,
         type: 'toggle',
-        enabled: getRandomBoolean()
+        enabled: getRandomBoolean(),
+        name: `Toggle ${id}`
     };
 }
 

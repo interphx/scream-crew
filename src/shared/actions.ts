@@ -3,19 +3,19 @@ import { ControlId } from 'shared/controls';
 
 interface BaseAction {
     controlId: ControlId;
-    playerId: PlayerId;
+    //playerId: PlayerId;
 }
 
 export interface ButtonPress extends BaseAction {
-    kind: 'button-press';
+    type: 'button-press';
 }
 
 export interface ToggleToggle extends BaseAction {
-    kind: 'toggle-toggle';
+    type: 'toggle-toggle';
 }
 
 export interface SwitchSet extends BaseAction {
-    kind    : 'switch-set';
+    type    : 'switch-set';
     newValue: number;
 }
 

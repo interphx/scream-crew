@@ -3,24 +3,33 @@ import * as React from 'react';
 import { PlayerInfo, PlayerId } from 'shared/player';
 import { ListedGameInfo } from 'shared/game-session';
 
+import { ServerMessageSender } from 'client/messaging/server-message-sender';
+import { PlayerStatus } from 'client/player-status';
+
 interface GameRoomProps {
     game: ListedGameInfo;
     players: PlayerInfo[];
     readyPlayers: PlayerId[];
+    playerStatus: PlayerStatus;
+
+    messageSender: ServerMessageSender;
 }
 
 function isPlayerReady(playerId: PlayerId, readyPlayers: PlayerId[]): boolean {
     return readyPlayers.indexOf(playerId) >= 0;
 }
 
-function ready(playerId: PlayerId) {
-
+function ready(messageSender: ServerMessageSender) {
+    messageSender.send({type: 'ready-to-start'});
 }
 
 export function GameRoom(props: GameRoomProps) {
-    var game = props.game,
-        players = props.players,
-        readyPlayers = props.readyPlayers;
+    var {
+        game,
+        players, 
+        readyPlayers,
+        playerStatus
+    } = props;
 
     return (
         <div>
@@ -28,7 +37,8 @@ export function GameRoom(props: GameRoomProps) {
             <ul>
                 { players.map(player => <li>{ player.name } { isPlayerReady(player.id, readyPlayers) ? '(готов)' : '' }</li>) }
             </ul>
-            <button onClick={() => ready}>My body is ready</button>
+            <button onClick={() => ready}
+                    disabled={playerStatus >= PlayerStatus.ReadyToStart}>My body is ready</button>
         </div>
     );
 }

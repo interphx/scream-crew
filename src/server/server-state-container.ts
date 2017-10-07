@@ -8,6 +8,7 @@ export interface ServerStateContainer {
     gameExists(gameId: GameId): boolean;
     fixNewGameName(name: string): string;
     getGameOwner(gameId: GameId): PlayerId;
+    getGameName(gameId: GameId): string;
     isPlayerPlaying(playerId: PlayerId): boolean;
     addPlayerToGame(playerId: PlayerId, gameId: GameId): void;
     removePlayerFromCurrentGame(playerId: PlayerId): void;
@@ -119,6 +120,10 @@ export class SimpleServerStateContainer implements ServerStateContainer {
 
     getGameOwner(gameId: GameId): PlayerId {
         return this.state.games[gameId].owner;
+    }
+
+    getGameName(gameId: GameId): string {
+        return this.state.games[gameId].name;
     }
 
     getGameOfPlayer(playerId: PlayerId): GameId | null {

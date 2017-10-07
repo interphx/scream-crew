@@ -2,7 +2,8 @@ import { Store } from 'redux';
 
 import { ServerMessageListener } from 'client/messaging/server-message-listener';
 import { Store as ClientStore } from 'client/store';
-import { addGame, removeGame } from 'client/actions';
+import { addGame, removeGame, setPlayerStatus, setCurrentGame } from 'client/actions';
+import { PlayerStatus } from 'client/player-status';
 
 export class MessageHandlingService {
     constructor(
@@ -18,6 +19,10 @@ export class MessageHandlingService {
         });
         this.listener.subscribe('game-removed', (message) => {
             this.store.dispatch(removeGame(message.gameId));
+        });
+        this.listener.subscribe('you-added-to-game', (message) => {
+            this.store.dispatch(setPlayerStatus(PlayerStatus.Preparing));
+            this.store.dispatch(setCurrentGame(message.gameId, message.gameName));
         });
     }
 

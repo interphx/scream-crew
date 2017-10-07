@@ -27,6 +27,11 @@ export class Lobby {
                 type: 'player-added-to-current-game',
                 playerId: playerId
             });
+            this.dispatcher.sendToOne(playerId, {
+                type: 'you-added-to-game',
+                gameId: gameId,
+                gameName: this.stateContainer.getGameOwner(gameId)
+            });
         }
     }
 

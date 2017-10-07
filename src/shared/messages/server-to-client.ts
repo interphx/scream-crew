@@ -31,7 +31,13 @@ export interface MessageInterfaces {
     'current-game-state-changed': {
         type: 'game-state-changed';
         newState: GameStateType;
-    }
+    };
+
+    'you-added-to-game': {
+        type: 'you-added-to-game';
+        gameId: GameId;
+        gameName: string;
+    };
 }
 
 export type MessageType = keyof MessageInterfaces;

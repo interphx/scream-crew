@@ -1,5 +1,6 @@
 import { GameId } from 'shared/game-session';
 import { PlayerId } from 'shared/player';
+import { Action } from 'shared/actions';
 
 export interface MessageInterfaces {
     'player-connected': {
@@ -35,6 +36,11 @@ export interface MessageInterfaces {
 
     'ready-to-start': {
         type: 'ready-to-start';
+    };
+
+    'control-action': {
+        type: 'control-action';
+        action: Action;
     };
 }
 
