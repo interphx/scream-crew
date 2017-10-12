@@ -9,12 +9,17 @@ import * as SocketIO   from 'socket.io';
 
 import { getRandomId } from 'shared/utils';
 
-import { Lobby } from 'server/systems/lobby';
 import { SocketIOPlayerMessagingService } from 'server/messaging/player-messaging';
-import { SimpleServerStateContainer } from 'server/server-state-container';
+import { createServerStore } from 'server/store';
+import { ServerSideReplicator } from 'server/server-side-replicator';
+import { getListedGames } from 'server/utils/games';
 
 var port      = 5000,
     staticDir = path.join(__dirname, '/static');
+
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+});
 
 async function main() {
     var app = express();
@@ -31,14 +36,32 @@ async function main() {
     var io = SocketIO(server);
     var messagingService = new SocketIOPlayerMessagingService(io);
 
-    var stateContainer = new SimpleServerStateContainer();
+    var replicator = new ServerSideReplicator(messagingService);
 
-    var lobby = new Lobby(stateContainer, messagingService, messagingService);
+    var reduxStore = createServerStore(replicator, messagingService);
 
-    lobby.start();
+    messagingService.subscribe('redux-action', (playerId, message) => {
+        var action = message.action;
+        action.meta = action.meta || {};
+        action.meta.remote = true;
+
+        reduxStore.dispatch(action);
+    });
+
+    messagingService.subscribe('initialize-my-data', (playerId, message) => {
+        console.log(`Got 'initialize my data' request`);
+        messagingService.sendToOne(playerId, {
+            type: 'redux-action',
+            action: {
+                type: ':INITIALIZE_DATA',
+                playerId: playerId,
+                games: getListedGames(reduxStore.getState())
+            }
+        })
+    });
 
     server.on('close', function() {
-        lobby.stop();
+        // Cleanup
     });
 }
 

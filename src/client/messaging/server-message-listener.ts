@@ -1,4 +1,4 @@
-import { MessageType, MessageInterfaces } from 'shared/messages/server-to-client';
+import { ServerToClientMessages, ServerToClientMessageType } from 'shared/messages/server-to-client';
 import { PlayerId } from 'shared/player';
 
 export interface MessageListenerBinding {
@@ -6,5 +6,5 @@ export interface MessageListenerBinding {
 }
 
 export interface ServerMessageListener {
-    subscribe<MsgType extends MessageType>(type: MsgType, handler: (message: MessageInterfaces[MsgType]) => void): MessageListenerBinding;
+    subscribe<MsgType extends ServerToClientMessageType>(type: MsgType, handler: (message: ServerToClientMessages[MsgType]) => void): MessageListenerBinding;
 }

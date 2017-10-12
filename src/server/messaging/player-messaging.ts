@@ -2,30 +2,28 @@ import { EventEmitter } from 'events';
 
 import * as SocketIO from 'socket.io';
 
-import { Message as ServerToClientMessage, 
-         MessageType as ServerToClientMessageType, 
-         MessageInterfaces as ServerToClientMessageInterfaces } from 'shared/messages/server-to-client';
-import { Message as ClientToServerMessage, 
-         MessageType as ClientToServerMessageType, 
-         MessageInterfaces as ClientToServerMessageInterfaces, 
-         RequestMessageType as ClientToServerRequestMessageType,
-         ResponseInterfaces as ClientToServerResponseInterfaces,
-         RequestMessage as ClientToServerRequestMessage} from 'shared/messages/client-to-server';
+import { ServerToClientMessage, 
+         ServerToClientMessageType, 
+         ServerToClientMessages } from 'shared/messages/server-to-client';
+import { ClientToServerMessage, 
+         ClientToServerMessageType, 
+         ClientToServerMessages } from 'shared/messages/client-to-server';
 import { PlayerId } from 'shared/player';
 import { getRandomId } from 'shared/utils';
 
 import { PlayerMessageListener, 
          MessageListenerBinding } from 'server/messaging/player-message-listener';
 import { PlayerMessageSender } from 'server/messaging/player-message-sender';
+import { getListedGames } from 'server/utils/games';
 
 type SocketId = string;
 
 export class SocketIOPlayerMessagingService extends EventEmitter implements PlayerMessageSender, PlayerMessageListener {
     protected sockets: Map<PlayerId, SocketIO.Socket> = new Map();
-    protected requestHandlers: {
+    /*protected requestHandlers: {
         [Key in ClientToServerRequestMessageType]?: 
             (playerId: PlayerId, request: ClientToServerMessageInterfaces[Key]) => ClientToServerResponseInterfaces[Key] | Promise<ClientToServerResponseInterfaces[Key]>
-    } = {};
+    } = {};*/
 
     constructor(protected io: SocketIO.Server) {
         super();
@@ -48,7 +46,7 @@ export class SocketIOPlayerMessagingService extends EventEmitter implements Play
                 this.emit(message.type, playerId, message);
             });
 
-            socket.on('request', (request: { requestId: string, message: ClientToServerRequestMessage }) => {
+            /*socket.on('request', (request: { requestId: string, message: ClientToServerRequestMessage }) => {
                 var type = request.message.type,
                     handler = this.requestHandlers[type];
 
@@ -65,7 +63,7 @@ export class SocketIOPlayerMessagingService extends EventEmitter implements Play
                         console.log(`Resolved! Sent response to ${type}.`);
                     });
                 }
-            });
+            });*/
         });
     }
 
@@ -91,13 +89,14 @@ export class SocketIOPlayerMessagingService extends EventEmitter implements Play
     }
 
     subscribe<MsgType extends ClientToServerMessageType>
-        (type: MsgType, handler: (playerId: PlayerId, message: ClientToServerMessageInterfaces[MsgType]) => void
+        (type: MsgType, handler: (playerId: PlayerId, message: ClientToServerMessages[MsgType]) => void
     ): MessageListenerBinding {
+        console.log(`Subscribed to ${type}`);
         super.on(type, handler);
         return { destroy: () => this.removeListener(type, handler) };
     }
 
-    addRequestHandler<MsgType extends ClientToServerRequestMessageType>(
+    /*addRequestHandler<MsgType extends ClientToServerRequestMessageType>(
         type: MsgType, 
         handler: (playerId: string, message: ClientToServerMessageInterfaces[MsgType]
     ) => ClientToServerResponseInterfaces[MsgType]): MessageListenerBinding {
@@ -114,6 +113,6 @@ export class SocketIOPlayerMessagingService extends EventEmitter implements Play
             }
         };
 
-    }
+    }*/
 
 }

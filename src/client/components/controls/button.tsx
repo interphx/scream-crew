@@ -7,27 +7,19 @@ import { ServerMessageSender } from 'client/messaging/server-message-sender';
 
 interface ButtonProps {
     buttonControl: Button;
-    messageSender: ServerMessageSender;
 }
 
 function sendPressAction(controlId: ControlId, messageSender: ServerMessageSender) {
-    messageSender.send({
-        type: 'control-action',
-        action: {
-            type: 'button-press',
-            controlId: controlId
-        }
-    });
+
 }
 
 export function Button(props: ButtonProps) {
     var {
-        buttonControl,
-        messageSender
+        buttonControl
     } = props;
 
     return (
-        <button onClick={() => sendPressAction(buttonControl.id, messageSender)}>
+        <button onClick={() => {}}>
             { buttonControl.name }
         </button>
     );

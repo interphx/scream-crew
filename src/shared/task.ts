@@ -1,4 +1,4 @@
-import { Action } from 'shared/actions';
+import { Action } from 'shared/control-actions';
 
 export interface Task {
     action: Action;

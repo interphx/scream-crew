@@ -11,7 +11,7 @@ export enum GameStateType {
 export interface ListedGameInfo {
     id: GameId;
     name: string;
-    stateType: GameStateType;
+    state: GameStateType;
     hasPassword: boolean;
     playersCount: number;
 }

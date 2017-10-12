@@ -1,9 +1,13 @@
 import * as React from 'react';
+import { Dispatch } from 'react-redux';
 
-import { ServerMessageSender } from 'client/messaging/server-message-sender';
+import { ClientAction } from 'shared/redux-actions/client';
+import { getRandomId } from 'shared/utils';
+import { PlayerId } from 'shared/player';
 
 interface CreateGameProps {
-    messageSender: ServerMessageSender;
+    playerId: PlayerId;
+    dispatch: Dispatch<ClientAction>;
 }
 
 interface CreateGameState {
@@ -42,7 +46,20 @@ export class CreateGame extends React.Component<CreateGameProps, CreateGameState
         event.preventDefault();
 
         this.setState({ loading: true });
-        var response = await this.props.messageSender.request({
+
+        this.props.dispatch({
+            type: 'LOBBY:ADD_GAME',
+            game: {
+                id: getRandomId(8),
+                listed: this.state.listed,
+                name: this.state.name,
+                password: this.state.password,
+                owner: this.props.playerId
+            }
+        });
+
+        // TODO: Replace with dispatch
+        /*var response = await this.props.messageSender.request({
             type: 'create-game',
             name: this.state.name,
             password: this.state.password,
@@ -56,7 +73,7 @@ export class CreateGame extends React.Component<CreateGameProps, CreateGameState
         } else {
             alert(`Failed to create a game. Reason: ${response.error}`);
             console.log(`Failed to create a game. Reason: ${response.error}`);
-        }
+        }*/
     }
 
     render() {

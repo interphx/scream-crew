@@ -4,19 +4,18 @@ import { Provider, connect } from 'react-redux';
 import * as SocketIO from 'socket.io-client';
 
 import { getRandomId } from 'shared/utils';
+import { GameStateType } from 'shared/game-session';
 
-import { createStateContainer, Store } from 'client/store';
+import { createClientStore, ClientState } from 'client/store';
 import { SocketIOServerMessageService } from 'client/messaging/socket-io-server-message-service';
-import { MessageHandlingService } from 'client/message-handling-service';
-import { Lobby } from 'client/components/lobby';
-import { CreateGame } from 'client/components/create-game';
 import { ServerMessageSender } from 'client/messaging/server-message-sender';
-import { PlayerStatus } from 'client/player-status';
-import { GameRoom } from 'client/components/game-room';
+import { ClientSideReplicator } from 'client/client-side-replicator';
+import { LobbyContainer } from 'client/components/lobby-container';
+import { GameRoomContainer } from 'client/components/game-room-container';
+import { CreateGameContainer } from 'client/components/create-game-container';
 
 interface AppProps {
-    messageSender: ServerMessageSender;
-    store: Store;
+    state: ClientState;
 }
 
 interface AppState {
@@ -26,56 +25,68 @@ interface AppState {
 class BaseApp extends React.Component<AppProps, AppState> {
     render() {
         var {
-            playerStatus,
-            currentGameData
-        } = this.props.store;
+            playerId,
+            games
+        } = this.props.state;
 
-        if (
-            (playerStatus > PlayerStatus.Idle && playerStatus <= PlayerStatus.ReadyToStart) &&
-            currentGameData
-        ) {
-            return <GameRoom game={currentGameData} />
+        if (!playerId) {
+            return <div>Not connected!</div>
         }
 
-        if (playerStatus === PlayerStatus.InGame) {
-            return <div>Game...</div>
+        var currentGame = Object.values(games).find(game => game.players ? game.players.indexOf(playerId!) >= 0 : false);
+
+        if (!currentGame) {
+            return (
+                <div>
+                    <LobbyContainer />
+                    <CreateGameContainer />
+                </div>
+            );
         }
 
-        return (
-            <div className="app">
-                <Lobby />
-                <CreateGame messageSender={this.props.messageSender} />
-            </div>
-        );
+        if (currentGame) {
+            if (currentGame.state === GameStateType.AwaitingPlayers) {
+                return <GameRoomContainer />;
+            } else {
+                return <div>Game {currentGame.name} is ongoing!</div>
+            }
+        }
+
+        return <div>{playerId ? `Connected as ${playerId}` : `Not connected!`}</div>;
     }
 }
 
-function mapStateToProps(state: Store) {
+function mapStateToProps(state: ClientState) {
     return {
-        store: state
+        state: state
     };
 }
 
-function mapDispatchToProps(state: Store) {
+function mapDispatchToProps(state: ClientState) {
     return {};
 }
 
 var App = connect(mapStateToProps, mapDispatchToProps)(BaseApp);
 
 function main() {
-    var store = createStateContainer();
-    (window as any).store = store;
-
     var io = SocketIO();
     var messageService = new SocketIOServerMessageService(io);
+    var replicator = new ClientSideReplicator(messageService);
 
-    var messageHandlingService = new MessageHandlingService(messageService, store);
-    messageHandlingService.start();
+    io.on('connect', () => {
+        console.log(`Connected, sending data init request...`);
+        messageService.send({
+            type: 'initialize-my-data'
+        });
+    });
+    
+    var store = createClientStore(replicator, messageService);
+    (window as any).store = store;
 
     var root = document.getElementById('react-container');
     ReactDOM.render(
         <Provider store={ store }>
-            <App messageSender={messageService} />
+            <App />
         </Provider>, 
         root
     );

@@ -15,7 +15,7 @@ export function LobbyGameEntry(props: LobbyProps) {
             <td>{ game.name }</td>
             <td>{ game.hasPassword }</td>
             <td>{ game.playersCount }</td>
-            <td>{ game.stateType }</td>
+            <td>{ game.state }</td>
         </tr>
     );
 }

@@ -1,44 +1,14 @@
-import { GameId, GameStateType, ListedGameInfo } from 'shared/game-session';
+import { CommonMessages } from 'shared/messages/common';
 import { PlayerId } from 'shared/player';
+import { GameId } from 'shared/game-session';
+import { ClientAction } from 'shared/redux-actions/client';
 
-export interface MessageInterfaces {
-    'game-added': {
-        type: 'game-added';
-        gameData: ListedGameInfo;
-    };
-
-    'game-removed': {
-        type: 'game-removed';
-        gameId: GameId;
-    };
-
-    'player-added-to-current-game': {
-        type: 'player-added-to-current-game';
-        playerId: PlayerId;
-    };
-
-    'player-removed-from-current-game': {
-        type: 'player-removed-from-current-game';
-        playerId: PlayerId;
-    };
-
-    'game-players-count-changed': {
-        type: 'game-players-count-changed';
-        gameId: GameId;
-        newPlayersCount: number;
-    };
-
-    'current-game-state-changed': {
-        type: 'game-state-changed';
-        newState: GameStateType;
-    };
-
-    'you-added-to-game': {
-        type: 'you-added-to-game';
-        gameId: GameId;
-        gameName: string;
-    };
+export interface ServerToClientMessages extends CommonMessages {
+    'redux-action': {
+        type: 'redux-action';
+        action: ClientAction;
+    }
 }
 
-export type MessageType = keyof MessageInterfaces;
-export type Message = MessageInterfaces[MessageType];
+export type ServerToClientMessageType = keyof ServerToClientMessages;
+export type ServerToClientMessage = ServerToClientMessages[ServerToClientMessageType];
